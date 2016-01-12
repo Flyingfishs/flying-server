@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.flying.dao.UserDao">
+
+	
+    <sql id="userColumns">
+		a.*
+    </sql>
+
+	<!-- 根据登录名查询用户 -->
+	<select id="getUsers" resultType="map" parameterType="map">
+		SELECT <include refid="userColumns"/>
+		FROM t_user a
+		WHERE 1=1 and a.username like CONCAT('%', #{user_name},'%')
+	</select>
+
+	
+</mapper>

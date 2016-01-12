@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <context:property-placeholder location="classpath:config/properties/*.properties"/>
+    <!-- 加载应用属性实例，可通过  @Value("#{APP_PROP['jdbc.driver']}") String jdbcDriver 方式引用 -->
+    <util:properties id="APP_PROP" location="classpath:config/properties/flying.properties" local-override="true"/>
+
+    <context:component-scan base-package="com.flying"/>
+
+    <!-- 配置druid数据源 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <!-- 数据源驱动类可不写，Druid默认会自动根据URL识别DriverClass -->
+        <property name="driverClassName" value="${jdbc.driver}" />
+        <!-- 基本属性 url、user、password -->
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+
+        <!-- 配置初始化大小、最小、最大 -->
+        <property name="initialSize" value="3" />
+        <property name="minIdle" value="3" />
+        <property name="maxActive" value="200" />
+        <!-- 配置获取连接等待超时的时间 -->
+        <property name="maxWait" value="60000" />
+        <!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+        <property name="timeBetweenEvictionRunsMillis" value="60000" />
+        <!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+        <property name="minEvictableIdleTimeMillis" value="300000" />
+        <property name="validationQuery" value="select 1" />
+        <property name="testWhileIdle" value="true" />
+        <property name="testOnBorrow" value="false" />
+        <property name="testOnReturn" value="false" />
+
+        <!-- 打开PSCache，并且指定每个连接上PSCache的大小（Oracle使用）-->
+        <!-- <property name="poolPreparedStatements" value="true" />
+        <property name="maxPoolPreparedStatementPerConnectionSize" value="20" /> -->
+
+        <!-- 配置监控统计拦截的filters -->
+        <!-- <property name="filters" value="stat" /> -->
+    </bean>
+
+    <!-- MyBatis begin -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="configLocation" value="classpath:config/mybatis/mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath:config/mappings/*.xml" />
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <!-- 扫描basePackage下所有以@MyBatisDao注解的接口 -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <property name="basePackage" value="com.flying.dao"/>
+        <property name="annotationClass" value="com.flying.core.persistence.annotation.MyBatisDao"/>
+    </bean>
+
+    <!-- 定义事务管理器（声明式的事务） -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="delete*" propagation="REQUIRED" read-only="false" />
+            <tx:method name="remove*" propagation="REQUIRED" read-only="false" />
+            <tx:method name="insert*" propagation="REQUIRED" read-only="false" />
+            <tx:method name="save*" propagation="REQUIRED" read-only="false"/>
+            <tx:method name="update*" propagation="REQUIRED" read-only="false" />
+            <tx:method name="find*" propagation="SUPPORTS" />
+            <tx:method name="get*" propagation="SUPPORTS" />
+            <tx:method name="select*" propagation="SUPPORTS" />
+        </tx:attributes>
+    </tx:advice>
+    <aop:config proxy-target-class="true">
+        <aop:pointcut id="interceptorPointCuts" expression="execution(* com.flying.service..*Impl.*(..))" />
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="interceptorPointCuts" />
+    </aop:config>
+
+
+  <!--  <mvc:annotation-driven />-->
+
+    <!-- 处理静态资源,排除被拦截 -->
+    <mvc:resources location="/resources/" mapping="/resources/**" cache-period="86400"/>
+
+    <!-- 定义无Controller的path<->view直接映射 -->
+    <!--<mvc:view-controller path="/" view-name="redirect:${web.view.index}"/>-->
+
+    <!-- 配置自定义转换服务器 -->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean"/>
+    <!-- 启用注解驱动 -->
+    <mvc:annotation-driven conversion-service="conversionService">
+        <!-- 字符串转换器 -->
+        <mvc:message-converters register-defaults="true">
+            <bean id="messageConverter" class="org.springframework.http.converter.StringHttpMessageConverter">
+                <constructor-arg value="UTF-8" />
+            </bean>
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>application/json; charset=UTF-8</value>
+                        <value>text/html; charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+
+            <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
+            <bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter"/>
+            <bean class="org.springframework.http.converter.FormHttpMessageConverter"/>
+        </mvc:message-converters>
+        <!-- 集合参数解析器 -->
+        <!--<mvc:argument-resolvers>-->
+        <!--</mvc:argument-resolvers>-->
+    </mvc:annotation-driven>
+
+    <!--<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.xml.SourceHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.FormHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>-->
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="${web.view.prefix}"/>
+        <property name="suffix" value="${web.view.suffix}"/>
+    </bean>
+
+
+
+    <!-- 配置上传文件所需的解析器 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+
+</beans>
