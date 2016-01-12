@@ -19,6 +19,8 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 条形码和二维码编码解码
@@ -27,6 +29,8 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
  * @version 2014-02-28
  */
 public class ZxingHandler {
+
+    public static Logger log = LoggerFactory.getLogger(ZxingHandler.class);
 
     /**
      * 条形码编码
@@ -49,7 +53,7 @@ public class ZxingHandler {
             MatrixToImageWriter.writeToPath(bitMatrix, "png", new File(imgPath).toPath());
 
         } catch (Exception e) {
-            e.printStackTrace();
+           log.error("encode faild",e);
         }
     }
 
@@ -73,7 +77,7 @@ public class ZxingHandler {
             result = new MultiFormatReader().decode(bitmap, null);
             return result.getText();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("decode faild",e);
         }
         return null;
     }
@@ -100,7 +104,7 @@ public class ZxingHandler {
                     .writeToPath(bitMatrix, "png", new File(imgPath).toPath());
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("encode2 faild",e);
         }
     }
 
@@ -127,7 +131,7 @@ public class ZxingHandler {
             result = new MultiFormatReader().decode(bitmap, hints);
             return result.getText();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("decode2 faild",e);
         }
         return null;
     }

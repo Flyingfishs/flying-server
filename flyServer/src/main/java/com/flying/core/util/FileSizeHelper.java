@@ -12,14 +12,16 @@ import java.text.DecimalFormat;
  * @since JDK 1.5
  */
 public class FileSizeHelper {
-	public static long ONE_KB = 1024;
-	public static long ONE_MB = ONE_KB * 1024;
-	public static long ONE_GB = ONE_MB * 1024;
-	public static long ONE_TB = ONE_GB * (long)1024;
-	public static long ONE_PB = ONE_TB * (long)1024;
+	static long ONE_KB = 1024;
+	static long ONE_MB = ONE_KB * 1024;
+	static long ONE_GB = ONE_MB * 1024;
+	static long ONE_TB = ONE_GB * (long)1024;
+	static long ONE_PB = ONE_TB * (long)1024;
+
+	private FileSizeHelper(){}
 
 	public static String getHumanReadableFileSize(Long fileSize) {
-		if(fileSize == null) return null;
+		if(fileSize == null){ return null;}
 		return getHumanReadableFileSize(fileSize.longValue());
 	}
 
@@ -52,7 +54,7 @@ public class FileSizeHelper {
 	}
 
 	private static String getHumanReadableFileSize(long fileSize, long unit, String unitName) {
-		if(fileSize == 0) return "0";
+		if(fileSize == 0){ return "0";}
 
 		if(fileSize / unit >= 1) {
 			double value = fileSize / (double)unit;

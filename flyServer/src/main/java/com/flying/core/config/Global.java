@@ -7,6 +7,8 @@ import com.ckfinder.connector.ServletContextFactory;
 import com.flying.core.util.PropertiesLoader;
 import com.flying.core.util.StringUtils;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.DefaultResourceLoader;
 
 import java.io.File;
@@ -19,6 +21,8 @@ import java.util.Map;
  * @version 2014-06-25
  */
 public class Global {
+
+	public static Logger log = LoggerFactory.getLogger(Global.class);
 
 	/**
 	 * 当前对象实例
@@ -57,6 +61,8 @@ public class Global {
 	 * 上传文件基础虚拟路径
 	 */
 	public static final String USERFILES_BASE_URL = "/userfiles/";
+
+	private Global(){}
 	
 	/**
 	 * 获取当前对象实例
@@ -124,6 +130,7 @@ public class Global {
 			return Global.class.getField(field).get(null);
 		} catch (Exception e) {
 			// 异常代表无配置，这里什么也不做
+			log.info("getConst field:{}",field);
 		}
 		return null;
 	}
@@ -138,13 +145,13 @@ public class Global {
 			try {
 				dir = ServletContextFactory.getServletContext().getRealPath("/");
 			} catch (Exception e) {
+				log.info("getUserfilesBaseDir faild");
 				return "";
 			}
 		}
 		if(!dir.endsWith("/")) {
 			dir += "/";
 		}
-//		System.out.println("userfiles.basedir: " + dir);
 		return dir;
 	}
 	
@@ -161,7 +168,9 @@ public class Global {
 		try {
 			File file = new DefaultResourceLoader().getResource("").getFile();
 			if (file != null){
-				while(true){
+				int i=10;
+				while(i>0){
+					i--;
 					File f = new File(file.getPath() + File.separator + "src" + File.separator + "main");
 					if (f == null || f.exists()){
 						break;
@@ -174,8 +183,8 @@ public class Global {
 				}
 				projectPath = file.toString();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			log.error("get getProjectPath faild {}",e.getMessage());
 		}
 		return projectPath;
     }

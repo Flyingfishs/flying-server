@@ -3,6 +3,9 @@
  */
 package com.flying.core.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -13,6 +16,10 @@ import java.io.StringWriter;
  * @version 2013-01-15
  */
 public class Exceptions {
+
+	public static Logger log = LoggerFactory.getLogger(Exceptions.class);
+
+    private Exceptions() {}
 
 	/**
 	 * 将CheckedException转换为UncheckedException.
@@ -33,7 +40,12 @@ public class Exceptions {
 			return "";
 		}
 		StringWriter stringWriter = new StringWriter();
-		e.printStackTrace(new PrintWriter(stringWriter));
+		try {
+			e.printStackTrace(new PrintWriter(stringWriter));
+		} catch(Exception e1) {
+            log.debug("faild {}",e1.getMessage());
+		}
+
 		return stringWriter.toString();
 	}
 
@@ -60,10 +72,12 @@ public class Exceptions {
 	 */
 	public static Throwable getThrowable(HttpServletRequest request){
 		Throwable ex = null;
-		if (request.getAttribute("exception") != null) {
-			ex = (Throwable) request.getAttribute("exception");
-		} else if (request.getAttribute("javax.servlet.error.exception") != null) {
-			ex = (Throwable) request.getAttribute("javax.servlet.error.exception");
+        Object e1 = request.getAttribute("exception");
+        Object e2 = request.getAttribute("javax.servlet.error.exception");
+		if (e1 != null) {
+			ex = (Throwable) e1;
+		} else if (e2 != null) {
+			ex = (Throwable)e2;
 		}
 		return ex;
 	}

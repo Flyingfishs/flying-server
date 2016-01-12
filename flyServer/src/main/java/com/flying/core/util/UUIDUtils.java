@@ -100,24 +100,21 @@ public abstract class UUIDUtils {
 		// time mid
 		mostSigBits |= (timeMillis & 0xFFFF00000000L) >> 16;
 
-		// time hi and version
 		mostSigBits |= 0x1000 | ((timeMillis >> 48) & 0x0FFF); // version 1
-		//System.out.println(" --- "+leastSigBits  +"  : "+mostSigBits);
 		return new UUID(leastSigBits,mostSigBits).toString().replace("-", "");
 	}
 	
 	public static void main(String[] args) throws InterruptedException {
-		//System.out.println(UUIDUtils.random().toString());
-		//System.out.println(UUIDUtils.create().toString());
-		//long timeMillis = (System.nanoTime() * 10000) + 0x01B21DD213814000L;
-		//long start = System.currentTimeMillis();//毫微秒
-		//System.out.println(System.nanoTime());
-		//System.out.println(timeMillis);
-		//System.out.println(0x01B21DD213814000L);
+		System.out.println(UUIDUtils.random().toString());
+		System.out.println(UUIDUtils.create().toString());
+		long timeMillis = (System.nanoTime() * 10000) + 0x01B21DD213814000L;
+		long start = System.currentTimeMillis();//毫微秒
+		System.out.println(System.nanoTime());
+		System.out.println(timeMillis);
+		System.out.println(0x01B21DD213814000L);
 		for (int i=0; i<1000; i++){
 			String s = UUIDUtils.create();
 			System.out.println(s);
-			//Thread.sleep(2000);
 		}
 	}
 

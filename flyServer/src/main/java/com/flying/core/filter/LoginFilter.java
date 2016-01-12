@@ -25,13 +25,13 @@ import java.util.List;
 })
 public class LoginFilter extends OncePerRequestFilter {
 
-    private static Logger log = LoggerFactory.getLogger(LoginFilter.class);
+    Logger log = LoggerFactory.getLogger(LoginFilter.class);
 
 
     /**
      * 例外页面;
      */
-    List<String> EXCLUDED_PAGES = Arrays.asList(new String[]{});
+    List<String> EXCLUDED_PAGES = Arrays.asList(new String[]{""});
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse resp, FilterChain fc) throws ServletException, IOException {

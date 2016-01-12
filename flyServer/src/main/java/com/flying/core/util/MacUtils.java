@@ -3,6 +3,9 @@
  */
 package com.flying.core.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,6 +17,8 @@ import java.io.InputStreamReader;
  * @version 2013-12-21
  */
 public class MacUtils {
+
+	public static Logger log = LoggerFactory.getLogger(MacUtils.class);
 
 	/**
 	 * 获取当前操作系统名称. return 操作系统名称 例如:windows,Linux,Unix等.
@@ -56,15 +61,15 @@ public class MacUtils {
 					break;
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			log.error("getUnixMACAddress faild {}",e.getMessage());
 		} finally {
 			try {
 				if (bufferedReader != null) {
 					bufferedReader.close();
 				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				log.debug("close faild");
 			}
 			bufferedReader = null;
 			process = null;
@@ -104,15 +109,15 @@ public class MacUtils {
 					break;
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			log.error("getUnixMACAddress faild {}",e.getMessage());
 		} finally {
 			try {
 				if (bufferedReader != null) {
 					bufferedReader.close();
 				}
 			} catch (IOException e1) {
-				e1.printStackTrace();
+				log.debug("close faild");
 			}
 			bufferedReader = null;
 			process = null;
@@ -171,15 +176,15 @@ public class MacUtils {
 					break;
 				}
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			log.error("getUnixMACAddress faild {}",e.getMessage());
 		} finally {
 			try {
 				if (bufferedReader != null) {
 					bufferedReader.close();
 				}
-			} catch (IOException e1) {
-				e1.printStackTrace();
+			} catch (Exception e1) {
+				log.debug("close faild");
 			}
 			bufferedReader = null;
 			process = null;

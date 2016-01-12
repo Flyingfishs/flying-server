@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.LocaleResolver;
@@ -24,6 +26,8 @@ import com.google.common.collect.Lists;
  * @version 2013-05-22
  */
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
+
+	public static Logger log = LoggerFactory.getLogger(StringUtils.class);
 	
     private static final char SEPARATOR = '_';
     private static final String CHARSET_NAME = "UTF-8";
@@ -36,20 +40,18 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * @return boolean 返回的布尔值
 	 */
 	public static boolean isEmpty(Object pObj) {
-		if (pObj == null)
-			return true;
-		if (pObj == "")
+		if (null == pObj || "" == pObj)
 			return true;
 		if (pObj instanceof String) {
 			if (((String) pObj).length() == 0) {
 				return true;
 			}
 		} else if (pObj instanceof Collection) {
-			if (((Collection<?>) pObj).size() == 0) {
+			if (((Collection<?>) pObj).isEmpty()) {
 				return true;
 			}
 		} else if (pObj instanceof Map) {
-			if (((Map<?,?>) pObj).size() == 0) {
+			if (((Map<?,?>) pObj).isEmpty()) {
 				return true;
 			}
 		}
@@ -65,26 +67,29 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * @return boolean 返回的布尔值
 	 */
 	public static boolean isNotEmpty(Object pObj) {
-		if (pObj == null)
-			return false;
-		if (pObj == "")
+		if (null == pObj || "" == pObj)
 			return false;
 		if (pObj instanceof String) {
 			if (((String) pObj).trim().length() == 0) {
 				return false;
 			}
 		} else if (pObj instanceof Collection) {
-			if (((Collection<?>) pObj).size() == 0) {
+			if (((Collection<?>) pObj).isEmpty()) {
 				return false;
 			}
 		} else if (pObj instanceof Map) {
-			if (((Map<?,?>) pObj).size() == 0) {
+			if (((Map<?,?>) pObj).isEmpty()) {
 				return false;
 			}
 		}
 		return true;
 	}
-	
+
+	/**
+	 * 去除空格
+	 * @param s
+	 * @return
+     */
 	public static String trimXStr(String s){
 		if(null==s || "".equals(s)){
 			return s;
@@ -102,11 +107,10 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     		try {
 				return str.getBytes(CHARSET_NAME);
 			} catch (UnsupportedEncodingException e) {
-				return null;
+				log.debug("str to Bytes error ");
 			}
-    	}else{
-    		return null;
     	}
+		return null;
     }
     
     /**
@@ -118,6 +122,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     	try {
 			return new String(bytes, CHARSET_NAME);
 		} catch (UnsupportedEncodingException e) {
+			log.debug("str to Bytes error ");
 			return EMPTY;
 		}
     }
@@ -211,20 +216,26 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			}
 			return sb.toString();
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			log.error("abbr abs faild.");
 		}
 		return "";
 	}
-	
+
+	/**
+	 * 缩略字符串（区分中英文字符）
+	 * @param param
+	 * @param length
+     * @return
+     */
 	public static String abbr2(String param, int length) {
 		if (param == null) {
 			return "";
 		}
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		int n = 0;
 		char temp;
 		boolean isCode = false; // 是不是HTML代码
-		boolean isHTML = false; // 是不是HTML特殊字符,如&nbsp;
+		boolean isHTML = false; // 特殊字符,如&nbsp;
 		for (int i = 0; i < param.length(); i++) {
 			temp = param.charAt(i);
 			if (temp == '<') {
@@ -242,7 +253,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 					n += String.valueOf(temp).getBytes("GBK").length;
 				}
 			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
+				log.error("String getBytes faild");
 			}
 
 			if (n <= length - 3) {
@@ -253,19 +264,19 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			}
 		}
 		// 取出截取字符串中的HTML标记
-		String temp_result = result.toString().replaceAll("(>)[^<>]*(<?)",
+		String tempResult = result.toString().replaceAll("(>)[^<>]*(<?)",
 				"$1$2");
 		// 去掉不需要结素标记的HTML标记
-		temp_result = temp_result
+		tempResult = tempResult
 				.replaceAll(
 						"</?(AREA|BASE|BASEFONT|BODY|BR|COL|COLGROUP|DD|DT|FRAME|HEAD|HR|HTML|IMG|INPUT|ISINDEX|LI|LINK|META|OPTION|P|PARAM|TBODY|TD|TFOOT|TH|THEAD|TR|area|base|basefont|body|br|col|colgroup|dd|dt|frame|head|hr|html|img|input|isindex|li|link|meta|option|p|param|tbody|td|tfoot|th|thead|tr)[^<>]*/?>",
 						"");
 		// 去掉成对的HTML标记
-		temp_result = temp_result.replaceAll("<([a-zA-Z]+)[^<>]*>(.*?)</\\1>",
+		tempResult = tempResult.replaceAll("<([a-zA-Z]+)[^<>]*>(.*?)</\\1>",
 				"$2");
 		// 用正则表达式取出标记
 		Pattern p = Pattern.compile("<([a-zA-Z]+)[^<>]*>");
-		Matcher m = p.matcher(temp_result);
+		Matcher m = p.matcher(tempResult);
 		List<String> endHTML = Lists.newArrayList();
 		while (m.find()) {
 			endHTML.add(m.group(1));
@@ -363,17 +374,17 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * 		toCapitalizeCamelCase("hello_world") == "HelloWorld"
 	 * 		toUnderScoreCase("helloWorld") = "hello_world"
 	 */
-    public static String toCamelCase(String s) {
-        if (s == null) {
+    public static String toCamelCase(String str) {
+        if (str == null) {
             return null;
         }
 
-        s = s.toLowerCase();
+		str = str.toLowerCase();
 
-        StringBuilder sb = new StringBuilder(s.length());
+        StringBuilder sb = new StringBuilder(str.length());
         boolean upperCase = false;
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
 
             if (c == SEPARATOR) {
                 upperCase = true;
@@ -395,12 +406,12 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 	 * 		toCapitalizeCamelCase("hello_world") == "HelloWorld"
 	 * 		toUnderScoreCase("helloWorld") = "hello_world"
 	 */
-    public static String toCapitalizeCamelCase(String s) {
-        if (s == null) {
+    public static String toCapitalizeCamelCase(String str) {
+        if (str == null) {
             return null;
         }
-        s = toCamelCase(s);
-        return s.substring(0, 1).toUpperCase() + s.substring(1);
+		str = toCamelCase(str);
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
     
     /**
@@ -441,16 +452,7 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return sb.toString();
     }
     
-    /**
-     * 如果不为空，则设置值
-     * @param target
-     * @param source
-     */
-    public static void setValueIfNotBlank(String target, String source) {
-		if (isNotBlank(source)){
-			target = source;
-		}
-	}
+
  
     /**
      * 转换为JS获取对象值，生成三目运算返回结果
