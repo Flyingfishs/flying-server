@@ -24,11 +24,11 @@ public class UserController extends BaseController {
     private UserService userService;
 
     @RequestMapping(value="getUsers",method= RequestMethod.GET)
-    public @ResponseBody Map getUsers(String user_name){
-        log.debug("init getUsers :{}",user_name);
+    public @ResponseBody Map getUsers(String userName){
+        log.debug("init getUsers :{}",userName);
         String s = "";
         Map e = new HashMap<String,String>();
-        e.put("user_name",user_name);
+        e.put("user_name",userName);
 
         List list = userService.getUsers(e);
 
@@ -41,8 +41,8 @@ public class UserController extends BaseController {
         return e;
     }
 
-    @RequestMapping("test")
-    public @ResponseBody String test(){
+    @RequestMapping("test1")
+    public @ResponseBody String test1(){
         log.debug("init test");
         return "hello";
     }
